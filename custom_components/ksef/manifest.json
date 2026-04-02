@@ -1,0 +1,11 @@
+{
+  "domain": "ksef",
+  "name": "KSeF (Polish e-Invoice)",
+  "version": "1.0.0",
+  "config_flow": true,
+  "documentation": "https://github.com/craqs/ha-ksef",
+  "requirements": ["cryptography>=41.0", "requests>=2.31"],
+  "codeowners": ["@craqs"],
+  "iot_class": "cloud_polling",
+  "integration_type": "service"
+}
