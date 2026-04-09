@@ -62,7 +62,40 @@ entities:
     name: Received last month
 ```
 
+## Example — Invoice Table (Markdown Card)
+
+Displays received invoices this month as a Markdown table in the dashboard.
+
+```yaml
+type: markdown
+title: Received invoices — this month
+content: >
+  | # | Date | Seller | Gross | Currency |
+  |---|------|--------|-------|----------|
+  {% for inv in state_attr('sensor.ksef_received_this_month', 'invoices') -%}
+  | {{ loop.index }} | {{ inv.date }} | {{ inv.seller }} | {{ inv.gross }} | {{ inv.currency }} |
+  {% endfor %}
+  **Total:** {{ state_attr('sensor.ksef_received_this_month', 'total_gross') }} PLN
+```
+
+## Example — Invoice List (Markdown Card)
+
+Displays received invoices as a plain list, useful for smaller cards.
+
+```yaml
+type: markdown
+title: Received invoices — this month
+content: >
+  {% for inv in state_attr('sensor.ksef_received_this_month', 'invoices') -%}
+  - **{{ inv.date }}** — {{ inv.seller }}: {{ inv.gross }} {{ inv.currency }} *({{ inv.invoice_number }})*
+  {% endfor %}
+  ---
+  **Total gross:** {{ state_attr('sensor.ksef_received_this_month', 'total_gross') }} PLN
+```
+
 ## Example Automation — Notify on New Received Invoice
+
+Sends a notification for each new invoice that arrives, including the seller name and amount.
 
 ```yaml
 alias: "KSeF: new invoice received"
@@ -73,13 +106,17 @@ condition:
   - condition: template
     value_template: "{{ trigger.to_state.state | int > trigger.from_state.state | int }}"
 action:
-  - service: notify.mobile_app
-    data:
-      title: "New invoice received"
-      message: >
-        You have {{ states('sensor.ksef_received_this_month') }} invoices
-        this month totalling
-        {{ state_attr('sensor.ksef_received_this_month', 'total_gross') }} PLN.
+  - repeat:
+      count: >
+        {{ trigger.to_state.state | int - trigger.from_state.state | int }}
+      sequence:
+        - service: notify.mobile_app
+          data:
+            title: "New invoice received"
+            message: >
+              {% set invoices = state_attr('sensor.ksef_received_this_month', 'invoices') %}
+              {% set inv = invoices[-(repeat.index) ] %}
+              New invoice from {{ inv.seller }} for {{ inv.gross }} PLN has been received.
 ```
 
 ## Sensor Attributes Example
