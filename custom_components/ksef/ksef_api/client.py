@@ -221,10 +221,17 @@ class KSEFClient:
         except KSEFRateLimitError:
             raise
         except KSEFError as e:
-            if e.status_code == 401 and self._refresh_token:
-                self._refresh_access_token()
-                return self._request(method, path, auth=self._access_token, **kwargs)
-            raise
+            if e.status_code != 401:
+                raise
+            # Access token expired — try refresh, then fall back to full re-auth
+            if self._refresh_token:
+                try:
+                    self._refresh_access_token()
+                    return self._request(method, path, auth=self._access_token, **kwargs)
+                except KSEFAuthError:
+                    pass  # refresh token also expired, fall back to full re-auth
+            self.authenticate()
+            return self._request(method, path, auth=self._access_token, **kwargs)
 
     # ── Invoice queries ────────────────────────────────────────────────
 
