@@ -1,7 +1,7 @@
 {
   "domain": "ksef",
   "name": "KSeF (Polish e-Invoice)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "config_flow": true,
   "documentation": "https://github.com/craqs/ha-ksef",
   "requirements": ["cryptography>=41.0", "requests>=2.31"],
